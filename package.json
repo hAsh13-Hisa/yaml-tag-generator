@@ -6,6 +6,7 @@
     "node": ">=18.0.0"
   },
   "scripts": {
+    "build": "echo 'No build step required for this server'",
     "start": "node server.js",
     "dev": "node server.js",
     "server": "node server.js"
