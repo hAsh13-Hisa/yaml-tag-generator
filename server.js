@@ -150,39 +150,52 @@ function extractArticleData(html) {
     }
   }
   
-  // 概要を記事本文から直接抽出
+  // 概要を記事本文から直接抽出して要約化
   if (!data.summary && articleMatch) {
     const articleContent = articleMatch[1];
+    let fullText = '';
     
-    // 記事の最初の段落を探す（YAMLブロック以外）
+    // 記事の複数段落を取得
     const paragraphs = articleContent.match(/<p[^>]*>([^<]+)<\/p>/g);
     if (paragraphs && paragraphs.length > 0) {
+      const validParagraphs = [];
       for (const para of paragraphs) {
         const textMatch = para.match(/<p[^>]*>([^<]+)<\/p>/);
         if (textMatch && textMatch[1].length > 20 && 
             !textMatch[1].includes('title:') && 
             !textMatch[1].includes('author:') &&
             !textMatch[1].includes('tags:')) {
-          data.summary = textMatch[1].trim();
-          break;
+          validParagraphs.push(textMatch[1].trim());
         }
+      }
+      
+      if (validParagraphs.length > 0) {
+        fullText = validParagraphs.slice(0, 3).join(' '); // 最初の3段落
       }
     }
     
     // 段落が見つからない場合、divの中のテキストを探す
-    if (!data.summary) {
+    if (!fullText) {
       const divTexts = articleContent.match(/<div[^>]*>([^<]{30,})<\/div>/g);
       if (divTexts && divTexts.length > 0) {
+        const validDivs = [];
         for (const divText of divTexts) {
           const textMatch = divText.match(/<div[^>]*>([^<]+)<\/div>/);
           if (textMatch && textMatch[1].length > 30 && 
               !textMatch[1].includes('title:') && 
               !textMatch[1].includes('author:')) {
-            data.summary = textMatch[1].trim();
-            break;
+            validDivs.push(textMatch[1].trim());
           }
         }
+        if (validDivs.length > 0) {
+          fullText = validDivs.slice(0, 2).join(' '); // 最初の2つのdiv
+        }
       }
+    }
+    
+    // テキストを要約化
+    if (fullText) {
+      data.summary = summarizeText(fullText);
     }
   }
   
@@ -210,7 +223,7 @@ function extractArticleData(html) {
           if (yamlEndIndex !== -1 && yamlEndIndex + 3 < summary.length) {
             let afterYaml = summary.substring(yamlEndIndex + 3).trim();
             if (afterYaml.length > 10) {
-              data.summary = afterYaml;
+              data.summary = summarizeText(afterYaml);
               break;
             }
           }
@@ -218,13 +231,49 @@ function extractArticleData(html) {
           continue;
         }
         
-        data.summary = summary;
+        data.summary = summarizeText(summary);
         break;
       }
     }
   }
   
   return data;
+}
+
+function summarizeText(text) {
+  if (!text || text.length <= 150) {
+    return text;
+  }
+  
+  // 文章を句読点で分割
+  const sentences = text.split(/[。！？]/).filter(s => s.trim().length > 0);
+  
+  if (sentences.length === 0) {
+    return text.substring(0, 150) + '...';
+  }
+  
+  // 最初の1-2文を使用し、150文字以内に収める
+  let summary = '';
+  for (let i = 0; i < Math.min(2, sentences.length); i++) {
+    const sentence = sentences[i].trim();
+    if (summary.length + sentence.length + 1 <= 150) {
+      summary += (summary ? '。' : '') + sentence;
+    } else {
+      break;
+    }
+  }
+  
+  // 句点で終わっていない場合は追加
+  if (summary && !summary.endsWith('。') && !summary.endsWith('！') && !summary.endsWith('？')) {
+    summary += '。';
+  }
+  
+  // 長すぎる場合は切り詰める
+  if (summary.length > 150) {
+    summary = summary.substring(0, 147) + '...';
+  }
+  
+  return summary || text.substring(0, 150) + '...';
 }
 
 server.listen(PORT, '0.0.0.0', () => {
