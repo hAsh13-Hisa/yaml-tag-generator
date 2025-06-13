@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YAML Tag Generator for note.com</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen py-12 px-4">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-3xl font-bold text-gray-900 mb-8 text-center">
+                YAML Tag Generator for note.com
+            </h1>
+
+            <form id="scrapeForm" class="mb-8">
+                <div class="flex gap-4">
+                    <input
+                        type="url"
+                        id="urlInput"
+                        placeholder="https://note.com/..."
+                        class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required
+                    />
+                    <button
+                        type="submit"
+                        id="generateBtn"
+                        class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    >
+                        生成
+                    </button>
+                </div>
+            </form>
+
+            <div id="errorDiv" class="hidden mb-8 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700"></div>
+
+            <div id="resultDiv" class="hidden space-y-6">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-xl font-semibold mb-4">抽出された情報</h2>
+                    <dl class="space-y-2">
+                        <div>
+                            <dt class="font-medium text-gray-600">タイトル:</dt>
+                            <dd class="text-gray-900" id="titleOutput"></dd>
+                        </div>
+                        <div>
+                            <dt class="font-medium text-gray-600">著者:</dt>
+                            <dd class="text-gray-900" id="authorOutput"></dd>
+                        </div>
+                        <div>
+                            <dt class="font-medium text-gray-600">公開日:</dt>
+                            <dd class="text-gray-900" id="dateOutput"></dd>
+                        </div>
+                        <div>
+                            <dt class="font-medium text-gray-600">タグ:</dt>
+                            <dd class="text-gray-900" id="tagsOutput"></dd>
+                        </div>
+                        <div>
+                            <dt class="font-medium text-gray-600">概要:</dt>
+                            <dd class="text-gray-900" id="summaryOutput"></dd>
+                        </div>
+                    </dl>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-semibold">生成されたYAML</h2>
+                        <div class="flex gap-2">
+                            <button
+                                id="copyBtn"
+                                class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+                            >
+                                コピー
+                            </button>
+                            <button
+                                id="copyCodeBtn"
+                                class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                            >
+                                コードとしてコピー
+                            </button>
+                        </div>
+                    </div>
+                    <pre class="bg-gray-100 p-4 rounded overflow-x-auto">
+                        <code id="yamlOutput"></code>
+                    </pre>
+                    <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-700">
+                        💡 「コードとしてコピー」ボタンを使うと、noteに貼り付ける際にコードブロックとして表示されます
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('scrapeForm');
+        const urlInput = document.getElementById('urlInput');
+        const generateBtn = document.getElementById('generateBtn');
+        const errorDiv = document.getElementById('errorDiv');
+        const resultDiv = document.getElementById('resultDiv');
+        const copyBtn = document.getElementById('copyBtn');
+        const copyCodeBtn = document.getElementById('copyCodeBtn');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const url = urlInput.value;
+
+            if (!url.includes('note.com')) {
+                showError('有効なnote.comのURLを入力してください。');
+                return;
+            }
+
+            generateBtn.disabled = true;
+            generateBtn.textContent = '処理中...';
+            errorDiv.classList.add('hidden');
+            resultDiv.classList.add('hidden');
+
+            try {
+                const response = await fetch('/api/scrape', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url }),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to scrape the page');
+                }
+
+                displayResults(data);
+                
+            } catch (error) {
+                showError('エラーが発生しました: ' + error.message);
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.textContent = '生成';
+            }
+        });
+
+        copyBtn.addEventListener('click', () => {
+            const yamlText = document.getElementById('yamlOutput').textContent;
+            navigator.clipboard.writeText(yamlText)
+                .then(() => alert('YAMLをクリップボードにコピーしました！'))
+                .catch(() => alert('コピーに失敗しました'));
+        });
+
+        copyCodeBtn.addEventListener('click', () => {
+            const yamlText = document.getElementById('yamlOutput').textContent;
+            const codeBlockText = '```yaml\n' + yamlText + '\n```';
+            navigator.clipboard.writeText(codeBlockText)
+                .then(() => alert('YAMLをコードブロック形式でクリップボードにコピーしました！\nnoteに貼り付けるとコードとして表示されます。'))
+                .catch(() => alert('コピーに失敗しました'));
+        });
+
+        function showError(message) {
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+        }
+
+        function displayResults(data) {
+            document.getElementById('titleOutput').textContent = data.title || '取得できませんでした';
+            document.getElementById('authorOutput').textContent = data.author || '取得できませんでした';
+            document.getElementById('dateOutput').textContent = data.publish_date || '取得できませんでした';
+            document.getElementById('tagsOutput').textContent = data.tags.length > 0 ? data.tags.join(', ') : '取得できませんでした';
+            document.getElementById('summaryOutput').textContent = data.summary || '取得できませんでした';
+            
+            const yaml = convertToYAML(data);
+            document.getElementById('yamlOutput').textContent = yaml;
+            
+            resultDiv.classList.remove('hidden');
+        }
+
+        function convertToYAML(data) {
+            const lines = ['---'];
+            
+            if (data.title) {
+                lines.push(`title: "${data.title}"`);
+            }
+            
+            if (data.author) {
+                lines.push(`author: "${data.author}"`);
+            }
+            
+            if (data.publish_date) {
+                lines.push(`publish_date: "${data.publish_date}"`);
+            }
+            
+            if (data.tags && data.tags.length > 0) {
+                lines.push('tags:');
+                data.tags.forEach(tag => {
+                    lines.push(`  - ${tag}`);
+                });
+            }
+            
+            if (data.summary) {
+                // YAMLに含まれる特殊文字をエスケープ
+                let summary = data.summary;
+                summary = summary.replace(/"/g, '\\"'); // ダブルクォートをエスケープ
+                summary = summary.replace(/\n/g, ' '); // 改行を削除
+                summary = summary.replace(/\r/g, ''); // キャリッジリターンを削除
+                
+                lines.push(`summary: "${summary}"`);
+            }
+            
+            lines.push('...');
+            
+            return lines.join('\n');
+        }
+    </script>
+</body>
+</html>

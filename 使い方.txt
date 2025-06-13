@@ -1,0 +1,32 @@
+YAML Tag Generator - 使い方ガイド
+==================================
+
+■ Webブラウザ版の使い方（推奨）
+1. ターミナルで以下を実行:
+   ./start-server.sh
+
+2. Windowsのブラウザで以下のURLを開く:
+   http://localhost:8000/index.html
+
+3. note.comのURLを入力して「生成」ボタンをクリック
+
+■ コマンドライン版の使い方
+1. Bash版:
+   ./yaml-generator.sh https://note.com/xxx/xxx
+
+2. Python版:
+   python3 yaml_generator.py https://note.com/xxx/xxx
+
+3. Node.js版:
+   node yaml-generator-cli.js
+
+■ ファイル一覧
+- index.html: Webブラウザ版（GUI）
+- yaml-generator.sh: Bashスクリプト版
+- yaml_generator.py: Python版
+- yaml-generator-cli.js: Node.js版
+- start-server.sh: Webサーバー起動用
+
+■ 注意事項
+- CORSの制限により、一部の機能はサンプルデータを表示します
+- 実際のスクレイピングはコマンドライン版をご利用ください
