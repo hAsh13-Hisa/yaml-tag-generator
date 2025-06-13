@@ -1,83 +1,113 @@
-# YAML Tag Generator for note.com
+# 🏷️ YAML Tag Generator for note.com
 
-note.comの記事からYAML形式のメタデータを生成するツールです。
+note.comの記事からYAMLメタデータを自動生成するWebアプリケーションです。
 
-## 3つの使用方法
+![YAML Tag Generator](https://img.shields.io/badge/Status-Ready_for_Deploy-green)
+![Node.js](https://img.shields.io/badge/Node.js-18+-blue)
+![License](https://img.shields.io/badge/License-ISC-yellow)
 
-### 1. HTMLファイル版（最も簡単）
-ブラウザで `index.html` をダブルクリックして開くだけです。
-```bash
-# Windowsの場合
-start index.html
+## ✨ 機能
 
-# WSL/Linuxの場合
-xdg-open index.html
-```
+- 📝 **note.com記事の自動解析**: URLを入力するだけで記事情報を抽出
+- 🏷️ **YAML形式出力**: 標準的なYAMLフロントマター形式
+- 📋 **コードブロックコピー**: noteに貼り付けやすい形式
+- 🔍 **既存YAML検出**: 重複を避ける賢い処理
+- 📱 **レスポンシブUI**: モバイル・デスクトップ対応
 
-**注意**: CORSの制限により、実際のスクレイピングは動作しません。サンプルデータが表示されます。
-
-### 2. Node.js CLI版
-```bash
-# 実行方法
-node yaml-generator-cli.js
-
-# または直接実行
-./yaml-generator-cli.js
-```
-
-### 3. Python版
-```bash
-# 必要なライブラリをインストール
-python3 -m pip install requests
-
-# 実行方法（対話モード）
-python3 yaml_generator.py
-
-# URLを引数として渡す
-python3 yaml_generator.py https://note.com/hash_13/n/n3d3895937912
-```
-
-## 出力例
+## 🎯 抽出される情報
 
 ```yaml
-title: "戴震（たいしん）と易経の邂逅～数理と卜占の狭間で～"
-author: "Hisa（ひさ．）"
+---
+title: "記事のタイトル"
+author: "著者名"
 publish_date: "2025年6月12日"
 tags:
-  - Claude
-  - AI生成
-  - 易経
-  - 歴史ファンタジー
-  - AI易者
-  - 戴震
-summary: "この物語は、清朝時代の天才学者、戴震が易経の数理的な側面に深く傾倒し、その真髄を探求する歴史ファンタジーです。彼は江南での遊学中に伏羲と出会い、易経が宇宙の根本原理に基づく数理体系であることを学びます。その後、紫禁城で『四庫全書』の編纂に携わる中で研究を深め、主著『原善』で儒学的道徳観を数理的に再構築しました。晩年には六十四卦のパターン解析を通じて未来予測の可能性を探り、彼の研究が未来の人工知能に影響を与えることが予言されます。戴震の数理易学は、彼が亡くなった遠い未来、人工知能が易を占う時代において、その真価が再評価されることになります。"
+  - タグ1
+  - タグ2
+  - タグ3
+summary: "記事の概要文..."
+...
 ```
 
-## 機能
+## 🚀 デプロイ
 
-- note.comの記事URLからメタデータを自動抽出
-- タイトル、著者、公開日、ハッシュタグ、概要を取得
-- YAML形式で出力
-- ファイルに保存（CLI版）
+### Render（推奨）
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com)
 
-## トラブルシューティング
+1. このリポジトリをフォーク
+2. Renderでアカウント作成
+3. Web Service作成：
+   - Build Command: `npm install`
+   - Start Command: `npm run server`
 
-### Python版でrequestsがインストールできない場合
+### その他のプラットフォーム
+
+- **Vercel**: `vercel.json` 設定済み
+- **Netlify**: `netlify.toml` 設定済み
+- **Docker**: `Dockerfile` 設定済み
+- **Heroku**: Node.js対応
+
+詳細は [DEPLOY-INSTRUCTIONS.md](./DEPLOY-INSTRUCTIONS.md) を参照
+
+## 🛠️ ローカル開発
+
 ```bash
-# pipがない場合
-sudo apt update
-sudo apt install python3-pip
+# 依存関係をインストール
+npm install
 
-# または
-python3 -m ensurepip --upgrade
+# 開発サーバー起動
+npm run server
+
+# http://localhost:8081 でアクセス
 ```
 
-### Node.js版が動作しない場合
-```bash
-# Node.jsがインストールされているか確認
-node --version
+## 📖 使用方法
 
-# インストールされていない場合
-curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
-sudo apt-get install -y nodejs
+1. note.comの記事URLを入力
+2. 「生成」ボタンをクリック
+3. YAMLが自動生成される
+4. 「コードとしてコピー」でnoteに貼り付け
+
+### サンプルURL
 ```
+https://note.com/hash_13/n/n3d3895937912
+```
+
+## 🔧 技術スタック
+
+- **Backend**: Node.js
+- **Frontend**: HTML, JavaScript, Tailwind CSS
+- **API**: 記事スクレイピング
+- **Deploy**: Render, Vercel, Netlify対応
+
+## 📚 ファイル構成
+
+```
+yaml-tag-generator/
+├── server.js              # メインサーバー
+├── index.html             # フロントエンド
+├── render.yaml            # Render設定
+├── vercel.json            # Vercel設定
+├── netlify.toml           # Netlify設定
+├── Dockerfile             # Docker設定
+└── package.json           # Node.js設定
+```
+
+## 🎨 特徴
+
+- **スマート抽出**: HTMLエンティティの適切な処理
+- **YAML検出**: 既存のYAMLフロントマターを検出して重複回避
+- **エラーハンドリング**: 詳細なエラーメッセージ
+- **高速処理**: 軽量で高速な動作
+
+## 📄 ライセンス
+
+ISC License
+
+## 🤝 コントリビューション
+
+Issues、Pull Requestsをお待ちしています！
+
+---
+
+**🎉 [今すぐ使ってみる →](https://yaml-tag-generator.onrender.com)**
